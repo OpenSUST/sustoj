@@ -1,0 +1,77 @@
+body {
+  margin: 20px;
+  padding-top: 70px;
+  background-image: url(./geometry2.png);
+}
+
+.home .tag {
+  margin-left: 8px;
+}
+
+.home h6 {
+  margin: 0 0 16px;
+}
+
+.home .card {
+  background-color: #FFF;
+}
+
+.problem h1 {
+  margin: 0 0 1.2rem;
+  font-size: 2.3rem;
+}
+
+.problem h2 {
+  font-size: 1.9rem;
+}
+
+.submit {
+  position: fixed;
+  padding: .6em 1em;
+  right: 30px;
+  bottom: 40px;
+  border-top-left-radius: 185px 160px;
+  border-top-right-radius: 200px 195px;
+  border-bottom-right-radius: 160px 195px;
+  border-bottom-left-radius: 185px 190px;
+}
+
+nav {
+  z-index: 11;
+}
+
+.language-selector {
+  display: flex;
+  align-items: center;
+}
+
+.language-selector label {
+  margin: 0 8px 0 0 !important;
+}
+
+.monaco-editor .margin {
+  margin: 0;
+}
+
+.countdown {
+  display: flex;
+  align-items: center;
+}
+
+.center-btn {
+  width: 100%;
+  text-align: center;
+}
+
+#alerts {
+  position: fixed;
+  right: 20px;
+  top: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+#alerts > div {
+  width: fit-content;
+}
