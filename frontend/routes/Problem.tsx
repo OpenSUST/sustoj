@@ -17,7 +17,7 @@ import { useParams } from 'react-router-dom'
 
 import io from '../io'
 import useToken from '../token'
-import { alert } from '../utils'
+import { alert, getStatusText } from '../utils'
 
 (SyntaxHighlighter as any).registerLanguage('c', c)
 ;(SyntaxHighlighter as any).registerLanguage('cpp', cpp)
@@ -77,33 +77,16 @@ const ProblemPage: React.FC = () => {
           style={{ float: 'right' }}
           onClick={() => {
             if (!token || !window.started || !ref.current) return
+            const code = ref.current()
+            if (code.length > 1024 * 1024) {
+              alert('代码过长!', false, 'danger')
+              return
+            }
             const close = alert('执行中...')
-            io.emit('submit', token, (id || 'A').charCodeAt(0) - 65, lang, ref.current(), (err: string | null, status: string, message = '') => {
+            io.emit('submit', token, (id || 'A').charCodeAt(0) - 65, lang, code, (err: string | null, status: string, message = '') => {
               close()
-              if (err) {
-                alert(err, true, 'danger')
-                return
-              }
-              switch (status) {
-                case 'SUCCESS':
-                  message = '通过!'
-                  break
-                case 'TIMEOUT':
-                  message = '运行超时!'
-                  break
-                case 'MEMEORY':
-                  message = '内存超限!'
-                  break
-                case 'WRONG':
-                  message = '答案错误!'
-                  break
-                case 'COMPILE':
-                  message = '编译失败: ' + message
-                  break
-                case 'PRESENTATION':
-                  message = '输出格式错误!'
-              }
-              alert(message, false, status === 'SUCCESS' ? 'success' : 'warning')
+              if (err) alert(err, true, 'danger')
+              else alert(getStatusText(status) + (status === 'COMPILE' ? ': ' + message : ''), false, status === 'ACCEPTED' ? 'success' : 'danger')
             })
           }}
         >交一发!</label>

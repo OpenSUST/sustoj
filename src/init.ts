@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'fs'
-import { Problem } from './types'
+import { Data, Problem } from './types'
 
 if (!fs.existsSync('competition')) fs.mkdirSync('competition')
+if (!fs.existsSync('competition/submits')) fs.mkdirSync('competition/submits')
 if (!fs.existsSync('competition/problems')) fs.mkdirSync('competition/problems')
 if (!fs.existsSync('competition/problems/0')) fs.mkdirSync('competition/problems/0')
 
 ;([
-  ['competition/data.json', { problemsStatus: { }, userData: { } }],
+  ['competition/data.json', { problemsStatus: { }, userData: { }, submitId: 0 } as Data],
   ['competition/config.json', { title: '测试赛', start: Date.now(), end: Date.now() + 4 * 60 * 60 * 100, secret: Math.random().toString(36).slice(2) }],
   ['competition/users.json', { admin: { name: '管理员', password: Math.random().toString(36).slice(2), star: true } }],
   ['competition/problems/0/index.md', `# Test

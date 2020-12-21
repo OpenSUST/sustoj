@@ -1,8 +1,42 @@
+/* eslint-disable no-nested-ternary */
 // eslint-disable-next-line no-use-before-define
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import io from '../io'
 
+export interface UserData {
+  name: string
+  star?: true
+  penalty: number
+  solved: number
+  problems: Record<number, { solvedTime?: number, try: number }>
+  submits: Array<{ time: number, id: number, status: string }>
+}
+
+let flag = 0
 const RankList: React.FC = () => {
   const [showStared, setShowStared] = useState(false)
+  const [problems, setProblems] = useState<JSX.Element[]>([])
+  const [, update] = useState(0)
+  const [userData, setUserData] = useState<Record<string, UserData>>({})
+  useEffect(() => {
+    const f = (id: string, data: UserData) => {
+      userData[id] = data
+      update(flag++)
+    }
+    io.on('rankListUpdate', f).emit('rankList', (length: number, b: Record<string, [string] | string>, c: Record<string, UserData>) => {
+      setProblems(Array.from({ length }, (_, i) => <th key={i}>{String.fromCharCode(65 + i)}题</th>))
+      for (const key in c) {
+        const it = b[key]
+        if (typeof it === 'string') c[key].name = it
+        else {
+          c[key].name = it[0]
+          c[key].star = true
+        }
+      }
+      setUserData(c)
+    })
+    return () => io.off('rankListUpdate', f)
+  }, [])
   return (<div className='paper'>
     <h1 style={{ display: 'inline' }}>排名</h1>
     <span>(比赛结束一小时前封榜)</span>
@@ -18,34 +52,24 @@ const RankList: React.FC = () => {
           <th>名字</th>
           <th>题数</th>
           <th>罚时</th>
-          <th>A题</th>
-          <th>B题</th>
-          <th>C题</th>
-          <th>D题</th>
-          <th>E题</th>
-          <th>F题</th>
-          <th>G题</th>
+          {problems}
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>1</td>
-          <td>Bob Dylan</td>
-          <td>Musician</td>
-          <td>California, USA</td>
-        </tr>
-        <tr>
-          <td>2</td>
-          <td>Eric Clapton</td>
-          <td>Musician</td>
-          <td>Ohio, USA</td>
-        </tr>
-        <tr>
-          <td>3</td>
-          <td>Daniel Kahneman</td>
-          <td>Psychologist</td>
-          <td>California, USA</td>
-        </tr>
+        {userData && Object.entries(userData)
+          .sort(([, a], [, b]) => a.solved > b.solved ? -1 : a.solved === b.solved ? a.penalty - b.penalty : 1)
+          .filter(([, it]) => !it.star || showStared)
+          .map(([key, value], i) => <tr key={key}>
+            <td>{i + 1}</td>
+            <td>{value.name}</td>
+            <td>{value.solved}</td>
+            <td>{value.penalty}</td>
+            {Array.from({ length: problems.length }, (_, i) => {
+              const it = value.problems[i]
+              const solved = it?.solvedTime
+              return <td key={i} className={solved ? 'background-success' : it.try ? 'background-danger' : undefined}>{solved ? `${solved} (${it.try})` : it.try}</td>
+            })}
+          </tr>)}
       </tbody>
     </table>
   </div>)

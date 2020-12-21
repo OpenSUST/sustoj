@@ -5,7 +5,8 @@ import Pool from './pool'
 import { AddressInfo } from 'net'
 import { users, problems, config, secret } from './init'
 import { createServer } from 'http'
-import data, { update, problemsData } from './data'
+import { promises as fsp } from 'fs'
+import data, { update, problemsData, userIdMap } from './data'
 
 const IS_DEV = process.env.NODE_ENV !== 'production'
 
@@ -50,9 +51,15 @@ io.on('connection', (it: socketIO.Socket) => {
     })
     .on('getProblems', reply => {
       reply(problemsData)
-      it.in('problems').emit('problemsStatus', data.problemsStatus)
+      it.in('home').emit('problemsStatus', data.problemsStatus)
     })
-    .on('submit', (token = '', id, lang, code, reply) => {
+    .on('leaveHome', () => it.leave('home'))
+    .on('rankList', reply => {
+      it.in('rankList')
+      reply(problemsData.length, userIdMap, data.userData)
+    })
+    .on('leaveRankList', () => it.leave('rankList'))
+    .on('submit', (token = '', id: number, lang: string, code: string, reply) => {
       if (!token) {
         reply('你还没有登录!')
         return
@@ -61,6 +68,11 @@ io.on('connection', (it: socketIO.Socket) => {
         reply('比赛没有开始!')
         return
       }
+      if (!code || code.length > 1024 * 1024) {
+        reply('代码过长!')
+        return
+      }
+      id = +id
       if (!problems[id]) {
         reply('找不到这道题!')
         return
@@ -71,21 +83,26 @@ io.on('connection', (it: socketIO.Socket) => {
         return
       }
       switch (lang) {
-        case 'c': case 'cpp': case 'java': case 'python':
+        case 'c': case 'cpp': case 'java': case 'python': {
+          const problemStatus = data.problemsStatus[id] || (data.problemsStatus[id] = [0, 0])
+          problemStatus[1]++
+          const userData = data.userData[user] || (data.userData[user] = { penalty: 0, solved: 0, problems: { }, submits: [] })
+          const problem = userData.problems[id] || (userData.problems[id] = { try: 0 })
+          const time = Date.now()
+          const submitId = data.submitId++
+          const submit = { time, status: 'PENDING', id: submitId }
+          userData.submits.unshift(submit)
+          update()
+          fsp.writeFile('competition/submits/' + submitId, code).catch(console.error)
           workers.acquire()
             .then(it => it.emit('run', id, lang, code, (status: string, message: string) => {
               workers.add(it)
-              const problemStatus = data.problemsStatus[id] || (data.problemsStatus[id] = [0, 0])
-              problemStatus[1]++
-              const userData = data.userData[user] || (data.userData[user] = { penalty: 0, solved: 0, problems: { }, submits: [] })
-              const problem = userData.problems[id] || (userData.problems[id] = { try: 0 })
-              const time = Date.now()
-              userData.submits.unshift({ time, status, code })
-              if (!problem.solvedTime) {
-                problem.try++
-                if (status === 'SUCCESS') {
+              problem.try++
+              submit.status = status
+              if (status === 'ACCEPTED') {
+                problemStatus[0]++
+                if (!problem.solvedTime) {
                   userData.solved++
-                  problemStatus[0]++
                   problem.solvedTime = time
                   userData.penalty += time - config.start
                   userData.penalty += 20 * 60 * 1000 * (problem.try - 1)
@@ -93,9 +110,11 @@ io.on('connection', (it: socketIO.Socket) => {
               }
               update()
               reply(null, status, message)
-              io.in('problems').emit('problemsStatus', data.problemsStatus)
+              io.in('home').emit('problemsStatus', data.problemsStatus)
+              io.in('rankList').emit('rankListUpdate', user, userData)
             }))
           break
+        }
         default:
           reply('语言不正确!')
       }

@@ -18,3 +18,16 @@ export const alert = (message: string, autoClose = false, type = 'secondary') =>
   if (autoClose) setTimeout(f, 5000)
   return () => f
 }
+
+const STATUS_TEXT = {
+  PENDING: '执行中...',
+  ACCEPTED: '通过!',
+  TIMEOUT: '运行超时',
+  MEMEORY: '内存超限',
+  WRONG: '答案错误',
+  COMPILE: '编译失败',
+  PRESENTATION: '输出格式错误',
+  OUTPUT: '输出超限'
+}
+
+export const getStatusText = (status: string) => STATUS_TEXT[status] || '未知错误!'

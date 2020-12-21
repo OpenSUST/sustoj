@@ -12,7 +12,7 @@ const Home: React.FC = () => {
   const token = useToken()
   useEffect(() => {
     io.on('problemsStatus', setProblemsStatus).emit('getProblems', setProblems)
-    return () => io.off('problemsStatus', setProblemsStatus)
+    return () => io.off('problemsStatus', setProblemsStatus).emit('leaveHome')
   }, [])
   useStarted()
   return (<div className='home md-3 col'>
