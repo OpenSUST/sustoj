@@ -7,8 +7,8 @@ export default class Pool <T> {
     else this.workers.push(worker)
   }
 
-  remove (worker: T) {
-    this.workers = this.workers.filter(it => it !== worker)
+  remove (worker: T, fn?: (it: T) => boolean) {
+    this.workers = this.workers.filter(fn || (it => it !== worker))
   }
 
   acquire () {

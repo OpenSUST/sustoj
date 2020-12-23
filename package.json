@@ -42,6 +42,7 @@
     "ts-node-dev": "^1.1.1"
   },
   "dependencies": {
+    "@monaco-editor/react": "^3.7.4",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/koa": "^2.11.6",
     "@types/react": "^17.0.0",
@@ -50,7 +51,6 @@
     "@types/socket.io": "^2.1.12",
     "@typescript-eslint/eslint-plugin": "^4.10.0",
     "@typescript-eslint/parser": "^4.10.0",
-    "@monaco-editor/react": "^3.7.4",
     "jsonwebtoken": "^8.5.1",
     "koa": "^2.13.0",
     "papercss": "^1.8.2",
@@ -66,6 +66,7 @@
     "remark-math": "^4.0.0",
     "socket.io": "^3.0.4",
     "socket.io-client": "^3.0.4",
+    "timeago-react": "^3.0.1",
     "typescript": "^4.1.3"
   }
 }

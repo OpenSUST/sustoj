@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from 'react'
 import io from '../io'
 
+import { getProblemText } from '../utils'
+
 export interface UserData {
   name: string
   star?: true
   penalty: number
   solved: number
-  problems: Record<number, { solvedTime?: number, try: number }>
+  problems: Record<number, { solvedTime?: number, try: number, pending?: true }>
   submits: Array<{ time: number, id: number, status: string }>
 }
 
@@ -24,7 +26,7 @@ const RankList: React.FC = () => {
       update(flag++)
     }
     io.on('rankListUpdate', f).emit('rankList', (length: number, b: Record<string, [string] | string>, c: Record<string, UserData>) => {
-      setProblems(Array.from({ length }, (_, i) => <th key={i}>{String.fromCharCode(65 + i)}题</th>))
+      setProblems(Array.from({ length }, (_, i) => <th key={i}>{getProblemText(i)}题</th>))
       for (const key in c) {
         const it = b[key]
         if (typeof it === 'string') c[key].name = it
@@ -35,7 +37,7 @@ const RankList: React.FC = () => {
       }
       setUserData(c)
     })
-    return () => io.off('rankListUpdate', f)
+    return () => io.off('rankListUpdate', f).emit('leaveRankList')
   }, [])
   return (<div className='paper'>
     <h1 style={{ display: 'inline' }}>排名</h1>
@@ -67,7 +69,7 @@ const RankList: React.FC = () => {
             {Array.from({ length: problems.length }, (_, i) => {
               const it = value.problems[i]
               const solved = it?.solvedTime
-              return <td key={i} className={solved ? 'background-success' : it.try ? 'background-danger' : undefined}>{solved ? `${solved} (${it.try})` : it.try}</td>
+              return <td key={i} className={solved ? 'background-success' : it.pending ? 'background-secondary' : it.try ? 'background-danger' : undefined}>{solved ? `${solved} (${it.try})` : it.try}</td>
             })}
           </tr>)}
       </tbody>

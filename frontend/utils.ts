@@ -16,7 +16,7 @@ export const alert = (message: string, autoClose = false, type = 'secondary') =>
     elm = null
   }
   if (autoClose) setTimeout(f, 5000)
-  return () => f
+  return f
 }
 
 const STATUS_TEXT = {
@@ -30,4 +30,6 @@ const STATUS_TEXT = {
   OUTPUT: '输出超限'
 }
 
+export const getProblemId = (id: string) => (id || 'A').charCodeAt(0) - 65
+export const getProblemText = (id: number) => String.fromCharCode(65 + id)
 export const getStatusText = (status: string) => STATUS_TEXT[status] || '未知错误!'

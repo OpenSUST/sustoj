@@ -2,7 +2,6 @@ import socketIO from 'socket.io'
 import Koa from 'koa'
 import jwt from 'jsonwebtoken'
 import Pool from './pool'
-import { AddressInfo } from 'net'
 import { users, problems, config, secret } from './init'
 import { createServer } from 'http'
 import { promises as fsp } from 'fs'
@@ -24,25 +23,30 @@ const io = new socketIO.Server(server, {
 })
 
 let started = false
-setTimeout(() => {
+const check = () => {
   const now = Date.now()
   started = now > config.start && now < config.end
-}, 10000)
+}
+check()
+setTimeout(check, 10000)
 
 io.on('connection', (it: socketIO.Socket) => {
   let isWorker = false
   it
     .on('worker-login', (token, count = 1, reply) => {
+      if (!reply) return
       if (token !== secret) {
         reply('The secret is not correct!')
+        it.disconnect(true)
         return
       }
-      console.log('Worker login:', (it.client.request.socket.address() as AddressInfo).address)
+      console.log('Worker connected:', it.client.request.socket.remoteAddress)
       isWorker = true
-      reply(problems)
+      reply(null, problems)
       while (count-- > 0) workers.add(it)
     })
     .on('login', (username: string, password: string, reply) => {
+      if (!reply) return
       if (!(username in users) || users[username].password !== password) {
         reply('账号或密码错误!')
         return
@@ -50,22 +54,44 @@ io.on('connection', (it: socketIO.Socket) => {
       reply(null, users[username].name, jwt.sign(username, secret))
     })
     .on('getProblems', reply => {
+      if (!reply) return
       reply(problemsData)
-      it.in('home').emit('problemsStatus', data.problemsStatus)
+      it.join('home')
+      it.emit('problemsStatus', data.problemsStatus)
     })
     .on('leaveHome', () => it.leave('home'))
     .on('rankList', reply => {
-      it.in('rankList')
+      if (!reply) return
+      it.join('rankList')
       reply(problemsData.length, userIdMap, data.userData)
     })
     .on('leaveRankList', () => it.leave('rankList'))
+    .on('mySubmits', (token: string, reply) => {
+      if (!reply) return
+      if (!token) {
+        reply('你还没有登录!')
+        return
+      }
+      const user = jwt.verify(token, secret) as string | null
+      if (!user) {
+        reply('登录已失效!')
+        return
+      }
+      reply(null)
+      it.emit('submits', data.userData[user].submits)
+    })
     .on('submit', (token = '', id: number, lang: string, code: string, reply) => {
+      if (!reply) return
       if (!token) {
         reply('你还没有登录!')
         return
       }
       if (!started) {
         reply('比赛没有开始!')
+        return
+      }
+      if (!workers.workers.length) {
+        reply('当前没有任何在线的评测机!')
         return
       }
       if (!code || code.length > 1024 * 1024) {
@@ -90,14 +116,19 @@ io.on('connection', (it: socketIO.Socket) => {
           const problem = userData.problems[id] || (userData.problems[id] = { try: 0 })
           const time = Date.now()
           const submitId = data.submitId++
-          const submit = { time, status: 'PENDING', id: submitId }
+          const submit = { time, status: 'PENDING', id: submitId, problem: id }
+          problem.pending = true
           userData.submits.unshift(submit)
           update()
+          io.in('rankList').emit('rankListUpdate', user, userData)
+          it.emit('submits', userData.submits)
           fsp.writeFile('competition/submits/' + submitId, code).catch(console.error)
           workers.acquire()
             .then(it => it.emit('run', id, lang, code, (status: string, message: string) => {
-              workers.add(it)
+              if (!it.disconnected) workers.add(it)
               problem.try++
+              // eslint-disable-next-line prefer-reflect
+              delete problem.pending
               submit.status = status
               if (status === 'ACCEPTED') {
                 problemStatus[0]++
@@ -112,6 +143,7 @@ io.on('connection', (it: socketIO.Socket) => {
               reply(null, status, message)
               io.in('home').emit('problemsStatus', data.problemsStatus)
               io.in('rankList').emit('rankListUpdate', user, userData)
+              it.emit('submits', userData.submits)
             }))
           break
         }
@@ -120,6 +152,7 @@ io.on('connection', (it: socketIO.Socket) => {
       }
     })
     .on('getProblem', (id, reply) => {
+      if (!reply) return
       if (!started) {
         reply('比赛没有开始!')
         return
@@ -130,7 +163,7 @@ io.on('connection', (it: socketIO.Socket) => {
       }
       reply(null, problems[id].description)
     })
-    .on('disconnect', it => isWorker && workers.remove(it))
+    .on('disconnect', it => isWorker && workers.remove(it, a => !a.disconnected))
   io.emit('init', config)
 })
 server.listen(23333)

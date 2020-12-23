@@ -9,7 +9,7 @@ if (!fs.existsSync('competition/problems/0')) fs.mkdirSync('competition/problems
 
 ;([
   ['competition/data.json', { problemsStatus: { }, userData: { }, submitId: 0 } as Data],
-  ['competition/config.json', { title: '测试赛', start: Date.now(), end: Date.now() + 4 * 60 * 60 * 100, secret: Math.random().toString(36).slice(2) }],
+  ['competition/config.json', { title: '测试赛', start: Date.now(), end: Date.now() + 4 * 60 * 60 * 1000, secret: Math.random().toString(36).slice(2) }],
   ['competition/users.json', { admin: { name: '管理员', password: Math.random().toString(36).slice(2), star: true } }],
   ['competition/problems/0/index.md', `# Test
 

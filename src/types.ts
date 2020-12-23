@@ -11,8 +11,8 @@ export interface Problem {
 export interface UserData {
   penalty: number
   solved: number
-  problems: Record<number, { solvedTime?: number, try: number }>
-  submits: Array<{ time: number, id: number, status: string }>
+  problems: Record<number, { solvedTime?: number, try: number, pending?: true }>
+  submits: Array<{ time: number, id: number, status: string, problem: number }>
 }
 
 export interface Data {

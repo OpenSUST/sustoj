@@ -17,7 +17,7 @@ import { useParams } from 'react-router-dom'
 
 import io from '../io'
 import useToken from '../token'
-import { alert, getStatusText } from '../utils'
+import { alert, getStatusText, getProblemId } from '../utils'
 
 (SyntaxHighlighter as any).registerLanguage('c', c)
 ;(SyntaxHighlighter as any).registerLanguage('cpp', cpp)
@@ -36,7 +36,7 @@ const ProblemPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const [description, setDescription] = useState('')
   useEffect(() => {
-    io.emit('getProblem', (id || 'A').charCodeAt(0) - 65, (err, data) => setDescription(err || data))
+    io.emit('getProblem', getProblemId(id), (err, data) => setDescription(err || data))
   }, [id])
   const [lang, setLang] = useState(() => localStorage.getItem('language') || 'c')
   return <>
@@ -83,7 +83,7 @@ const ProblemPage: React.FC = () => {
               return
             }
             const close = alert('执行中...')
-            io.emit('submit', token, (id || 'A').charCodeAt(0) - 65, lang, code, (err: string | null, status: string, message = '') => {
+            io.emit('submit', token, getProblemId(id), lang, code, (err: string | null, status: string, message = '') => {
               close()
               if (err) alert(err, true, 'danger')
               else alert(getStatusText(status) + (status === 'COMPILE' ? ': ' + message : ''), false, status === 'ACCEPTED' ? 'success' : 'danger')
