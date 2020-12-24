@@ -19,6 +19,8 @@ export const alert = (message: string, autoClose = false, type = 'secondary') =>
   return f
 }
 
+export const copy = (text: string) => navigator.clipboard.writeText(text).then(() => alert('复制成功!', true, 'success'), () => alert('复制失败!', true, 'danger'))
+
 const STATUS_TEXT = {
   PENDING: '执行中...',
   ACCEPTED: '通过!',

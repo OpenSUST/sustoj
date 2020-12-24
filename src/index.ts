@@ -2,16 +2,18 @@ import socketIO from 'socket.io'
 import Koa from 'koa'
 import jwt from 'jsonwebtoken'
 import Pool from './pool'
+import serve from 'koa-static'
 import { users, problems, config, secret } from './init'
 import { createServer } from 'http'
 import { promises as fsp } from 'fs'
-import data, { update, problemsData, userIdMap } from './data'
+import data, { update, problemsData, userIdMap, lockedData, lock } from './data'
 
 const IS_DEV = process.env.NODE_ENV !== 'production'
 
 const workers = new Pool<socketIO.Socket>()
 
 const app = new Koa()
+app.use(serve('competition/static'))
 const server = createServer(app.callback())
 const io = new socketIO.Server(server, {
   serveClient: false,
@@ -23,9 +25,12 @@ const io = new socketIO.Server(server, {
 })
 
 let started = false
+let isLocked = false
 const check = () => {
   const now = Date.now()
+  isLocked = now > config.end - 60 * 60 * 1000 && now < config.end
   started = now > config.start && now < config.end
+  if (!lockedData && isLocked) lock()
 }
 check()
 setTimeout(check, 10000)
@@ -47,23 +52,28 @@ io.on('connection', (it: socketIO.Socket) => {
     })
     .on('login', (username: string, password: string, reply) => {
       if (!reply) return
-      if (!(username in users) || users[username].password !== password) {
+      const user = users[username]
+      if (!user || user.password !== password) {
         reply('账号或密码错误!')
         return
       }
-      reply(null, users[username].name, jwt.sign(username, secret))
+      if (user.star) it.join('star')
+      reply(null, user.name, jwt.sign(username, secret))
     })
-    .on('getProblems', reply => {
+    .on('getProblems', (token, reply) => {
       if (!reply) return
       reply(problemsData)
       it.join('home')
-      it.emit('problemsStatus', data.problemsStatus)
+      const user = token ? jwt.verify(token, secret) as string | null : null
+      it.emit('problemsStatus', isLocked && (!user || !users[user].star) ? lockedData.problemsStatus : data.problemsStatus)
+      if (user && data.userData[user]) it.emit('myProblemsStatus', data.userData[user].problems)
     })
     .on('leaveHome', () => it.leave('home'))
-    .on('rankList', reply => {
+    .on('rankList', (token, reply) => {
       if (!reply) return
       it.join('rankList')
-      reply(problemsData.length, userIdMap, data.userData)
+      const user = token ? jwt.verify(token, secret) as string | null : null
+      reply(problemsData.length, userIdMap, isLocked && (!user || !users[user].star) ? lockedData.userData : data.userData, user, user ? data.userData[user] : null)
     })
     .on('leaveRankList', () => it.leave('rankList'))
     .on('mySubmits', (token: string, reply) => {
@@ -79,6 +89,23 @@ io.on('connection', (it: socketIO.Socket) => {
       }
       reply(null)
       it.emit('submits', data.userData[user].submits)
+    })
+    .on('getCode', (token, id: number, reply) => {
+      if (!reply) return
+      if (!token) {
+        reply('你还没有登录!')
+        return
+      }
+      const user = jwt.verify(token, secret) as string | null
+      if (!user) {
+        reply('登录已失效!')
+        return
+      }
+      if (typeof id !== 'number' || isNaN(id) || id < 0 || id >= data.submitId || !data.userData[user] || data.userData[user].submits.every(it => it.id !== id)) {
+        reply('错误的提交ID!')
+        return
+      }
+      fsp.readFile('competition/submits/' + id, 'utf8').then(it => reply(null, it), () => reply('发生错误!'))
     })
     .on('submit', (token = '', id: number, lang: string, code: string, reply) => {
       if (!reply) return
@@ -141,8 +168,14 @@ io.on('connection', (it: socketIO.Socket) => {
               }
               update()
               reply(null, status, message)
-              io.in('home').emit('problemsStatus', data.problemsStatus)
-              io.in('rankList').emit('rankListUpdate', user, userData)
+              if (isLocked) {
+                io.in('star').in('home').emit('problemsStatus', data.problemsStatus)
+                io.in('star').in('rankList').emit('rankListUpdate', user, userData)
+              } else {
+                io.in('home').emit('problemsStatus', data.problemsStatus)
+                io.in('rankList').emit('rankListUpdate', user, userData)
+              }
+              it.in('home').emit('myProblemsStatus', userData.problems)
               it.emit('submits', userData.submits)
             }))
           break

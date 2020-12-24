@@ -1,10 +1,11 @@
+/* eslint-disable no-nested-ternary */
 // eslint-disable-next-line no-use-before-define
 import React, { useEffect, useState } from 'react'
 import TimeAgo from 'timeago-react'
 
 import io from '../io'
 import useToken from '../token'
-import { getStatusText, getProblemText } from '../utils'
+import { getStatusText, getProblemText, alert, copy } from '../utils'
 
 const Submits: React.FC = () => {
   const [submits, setSubmits] = useState<Array<{ time: number, id: number, status: string, problem: number }>>([])
@@ -14,7 +15,7 @@ const Submits: React.FC = () => {
     if (token) io.emit('mySubmits', token, err => err && console.error(err))
     return () => io.off('submits', setSubmits)
   }, [token])
-  return (<div className='paper'>
+  return (<div className='paper submits'>
     <h1 style={{ margin: 0 }}>我的提交</h1>
     <table>
       <thead>
@@ -31,8 +32,8 @@ const Submits: React.FC = () => {
           <td>{i + 1}</td>
           <td>{getProblemText(it.problem)}</td>
           <td><TimeAgo datetime={it.time} locale='zh_CN' /></td>
-          <td>{getStatusText(it.status)}</td>
-          <td><a>复制代码</a></td>
+          <td className={it.status === 'ACCEPTED' ? 'background-success' : it.status === 'PENDING' ? 'background-secondary' : 'background-danger'}>{getStatusText(it.status)}</td>
+          <td><a onClick={() => io.emit('getCode', token, it.id, (err, code) => err ? alert(err, true, 'danger') : copy(code))}>复制代码</a></td>
         </tr>)}
       </tbody>
     </table>

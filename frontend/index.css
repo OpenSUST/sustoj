@@ -8,6 +8,10 @@ body {
   margin-left: 8px;
 }
 
+.home h4.text-success {
+  text-decoration: line-through;
+}
+
 .home h6 {
   margin: 0 0 16px;
 }
@@ -23,6 +27,16 @@ body {
 
 .problem h2 {
   font-size: 1.9rem;
+}
+
+.problem .code-block {
+  position: relative;
+}
+
+.problem .code-block button {
+  top: 14px;
+  position: absolute;
+  right: 16px;
 }
 
 .submit {
@@ -74,4 +88,8 @@ nav {
 
 #alerts > div {
   width: fit-content;
+}
+
+.submits a {
+  cursor: pointer;
 }

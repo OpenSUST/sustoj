@@ -17,7 +17,7 @@ import { useParams } from 'react-router-dom'
 
 import io from '../io'
 import useToken from '../token'
-import { alert, getStatusText, getProblemId } from '../utils'
+import { alert, getStatusText, getProblemId, copy } from '../utils'
 
 (SyntaxHighlighter as any).registerLanguage('c', c)
 ;(SyntaxHighlighter as any).registerLanguage('cpp', cpp)
@@ -25,7 +25,10 @@ import { alert, getStatusText, getProblemId } from '../utils'
 ;(SyntaxHighlighter as any).registerLanguage('python', python)
 
 const renderers = {
-  code: ({ language, value }: { value: string, language: string }) => <SyntaxHighlighter style={theme} language={language}>{value}</SyntaxHighlighter>,
+  code: ({ language, value }: { value: string, language: string }) => <div className='code-block'>
+    <SyntaxHighlighter style={theme} language={language}>{value}</SyntaxHighlighter>
+    <button className='paper-btn btn-small btn-primary-outline' onClick={() => copy(value.trimEnd() + '\n')}>复制</button>
+  </div>,
   inlineMath: ({ value }: { value: string }) => <InlineMath math={value} />,
   math: ({ value }: { value: string }) => <BlockMath math={value} />
 }

@@ -3,6 +3,7 @@ import fs from 'fs'
 import { Data, Problem } from './types'
 
 if (!fs.existsSync('competition')) fs.mkdirSync('competition')
+if (!fs.existsSync('competition/static')) fs.mkdirSync('competition/static')
 if (!fs.existsSync('competition/submits')) fs.mkdirSync('competition/submits')
 if (!fs.existsSync('competition/problems')) fs.mkdirSync('competition/problems')
 if (!fs.existsSync('competition/problems/0')) fs.mkdirSync('competition/problems/0')

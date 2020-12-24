@@ -1,8 +1,11 @@
+/* eslint-disable multiline-ternary */
 /* eslint-disable no-nested-ternary */
 // eslint-disable-next-line no-use-before-define
 import React, { useState, useEffect } from 'react'
+import TimeAgo from 'timeago-react'
 import io from '../io'
 
+import useToken from '../token'
 import { getProblemText } from '../utils'
 
 export interface UserData {
@@ -20,12 +23,14 @@ const RankList: React.FC = () => {
   const [problems, setProblems] = useState<JSX.Element[]>([])
   const [, update] = useState(0)
   const [userData, setUserData] = useState<Record<string, UserData>>({})
+  const token = useToken()
   useEffect(() => {
     const f = (id: string, data: UserData) => {
-      userData[id] = data
+      if (!userData[id]) userData[id] = data
+      else Object.assign(userData[id], data)
       update(flag++)
     }
-    io.on('rankListUpdate', f).emit('rankList', (length: number, b: Record<string, [string] | string>, c: Record<string, UserData>) => {
+    io.on('rankListUpdate', f).emit('rankList', token, (length: number, b: Record<string, [string] | string>, c: Record<string, UserData>, user?: string, d?: UserData) => {
       setProblems(Array.from({ length }, (_, i) => <th key={i}>{getProblemText(i)}题</th>))
       for (const key in c) {
         const it = b[key]
@@ -35,10 +40,14 @@ const RankList: React.FC = () => {
           c[key].star = true
         }
       }
+      if (d && user) {
+        if (!c[user]) c[user] = d
+        else Object.assign(c[user], d)
+      }
       setUserData(c)
     })
     return () => io.off('rankListUpdate', f).emit('leaveRankList')
-  }, [])
+  }, [token])
   return (<div className='paper'>
     <h1 style={{ display: 'inline' }}>排名</h1>
     <span>(比赛结束一小时前封榜)</span>
@@ -63,13 +72,14 @@ const RankList: React.FC = () => {
           .filter(([, it]) => !it.star || showStared)
           .map(([key, value], i) => <tr key={key}>
             <td>{i + 1}</td>
-            <td>{value.name}</td>
+            <td popover-left={key}>{value.name}</td>
             <td>{value.solved}</td>
             <td>{value.penalty}</td>
             {Array.from({ length: problems.length }, (_, i) => {
               const it = value.problems[i]
               const solved = it?.solvedTime
-              return <td key={i} className={solved ? 'background-success' : it.pending ? 'background-secondary' : it.try ? 'background-danger' : undefined}>{solved ? `${solved} (${it.try})` : it.try}</td>
+              return <td key={i} className={solved ? 'background-success' : it.pending ? 'background-secondary' : it.try ? 'background-danger' : undefined}>{solved
+                ? <><TimeAgo datetime={solved} locale='zh_CN' /> (-{it.try})</> : `(-${it.try})`}</td>
             })}
           </tr>)}
       </tbody>
