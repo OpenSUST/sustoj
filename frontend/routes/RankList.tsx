@@ -24,6 +24,7 @@ const RankList: React.FC = () => {
   const [, update] = useState(0)
   const [userData, setUserData] = useState<Record<string, UserData>>({})
   const token = useToken()
+  const userId = localStorage.getItem('username')
   useEffect(() => {
     const f = (id: string, data: UserData) => {
       if (!userData[id]) userData[id] = data
@@ -72,7 +73,7 @@ const RankList: React.FC = () => {
           .filter(([, it]) => !it.star || showStared)
           .map(([key, value], i) => <tr key={key}>
             <td>{i + 1}</td>
-            <td popover-left={key}>{value.name}</td>
+            <td popover-left={key} className={key === userId ? 'background-secondary' : undefined}>{value.name}</td>
             <td>{value.solved}</td>
             <td>{value.penalty}</td>
             {Array.from({ length: problems.length }, (_, i) => {

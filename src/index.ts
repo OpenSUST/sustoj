@@ -13,6 +13,7 @@ const IS_DEV = process.env.NODE_ENV !== 'production'
 const workers = new Pool<socketIO.Socket>()
 
 const app = new Koa()
+app.use(serve('dist'))
 app.use(serve('competition/static'))
 const server = createServer(app.callback())
 const io = new socketIO.Server(server, {

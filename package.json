@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node build/index.js",
     "tsc": "tsc",
-    "build": "parcel build index.html && tsc",
+    "build": "del-cli dist && parcel build index.html && tsc",
     "dev": "parcel index.html",
     "dev2": "ts-node-dev src/index.ts",
     "test": "eslint ."
@@ -52,6 +52,7 @@
     "@types/socket.io": "^2.1.12",
     "@typescript-eslint/eslint-plugin": "^4.10.0",
     "@typescript-eslint/parser": "^4.10.0",
+    "del-cli": "^3.0.1",
     "jsonwebtoken": "^8.5.1",
     "koa": "^2.13.0",
     "koa-static": "^5.0.0",
