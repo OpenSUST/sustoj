@@ -17,6 +17,7 @@ body {
 }
 
 .home .card {
+  min-width: 240px;
   background-color: #FFF;
 }
 
@@ -92,4 +93,8 @@ nav {
 
 .submits a {
   cursor: pointer;
+}
+
+blockquote, blockquote p {
+  margin: 0;
 }

@@ -12,6 +12,7 @@ if (!fs.existsSync('competition/problems/0')) fs.mkdirSync('competition/problems
   ['competition/data.json', { problemsStatus: { }, userData: { }, submitId: 0 } as Data],
   ['competition/config.json', { title: '测试赛', start: Date.now(), end: Date.now() + 4 * 60 * 60 * 1000, secret: Math.random().toString(36).slice(2) }],
   ['competition/users.json', { admin: { name: '管理员', password: Math.random().toString(36).slice(2), star: true } }],
+  ['competition/announcement.md', ''],
   ['competition/problems/0/index.md', `# Test
 
 ## Description
@@ -54,3 +55,5 @@ export const problems: Problem[] = fs.readdirSync('competition/problems').sort((
     description: fs.readFileSync(path + 'index.md', 'utf8')
   }
 })
+
+export const announcement = fs.existsSync('competition/announcement.md') ? fs.readFileSync('competition/announcement.md', 'utf8') : ''

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/display-name */
 import 'katex/dist/katex.css'
@@ -5,6 +6,7 @@ import 'katex/dist/katex.css'
 import React, { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import math from 'remark-math'
+import gfm from 'remark-gfm'
 import c from 'react-syntax-highlighter/dist/esm/languages/prism/c'
 import cpp from 'react-syntax-highlighter/dist/esm/languages/prism/cpp'
 import java from 'react-syntax-highlighter/dist/esm/languages/prism/java'
@@ -24,31 +26,37 @@ import { alert, getStatusText, getProblemId, copy } from '../utils'
 ;(SyntaxHighlighter as any).registerLanguage('java', java)
 ;(SyntaxHighlighter as any).registerLanguage('python', python)
 
-const renderers = {
-  code: ({ language, value }: { value: string, language: string }) => <div className='code-block'>
+const renderers: Record<string, (obj: { value: string, language: string, children: JSX.Element }) => JSX.Element> = {
+  code: ({ language, value }) => <div className='code-block'>
     <SyntaxHighlighter style={theme} language={language}>{value}</SyntaxHighlighter>
     <button className='paper-btn btn-small btn-primary-outline' onClick={() => copy(value.trimEnd() + '\n')}>复制</button>
   </div>,
-  inlineMath: ({ value }: { value: string }) => <InlineMath math={value} />,
-  math: ({ value }: { value: string }) => <BlockMath math={value} />
+  inlineMath: ({ value }) => <InlineMath math={value} />,
+  math: ({ value }) => <BlockMath math={value} />,
+  blockquote: ({ children }) => <blockquote className='alert alert-secondary'>{children}</blockquote>
 }
+
+const plugins = [gfm, math]
 
 const ProblemPage: React.FC = () => {
   const token = useToken()
   const ref = useRef<() => string>()
   const { id } = useParams<{ id: string }>()
+  const [tags, setTags] = useState<string[]>([])
   const [description, setDescription] = useState('')
-  useEffect(() => {
-    io.emit('getProblem', getProblemId(id), (err, data) => setDescription(err || data))
-  }, [id])
   const [lang, setLang] = useState(() => localStorage.getItem('language') || 'c')
+  useEffect(() => {
+    io.emit('getProblem', getProblemId(id), (err, data, tags) => {
+      setDescription(err || data)
+      setTags(tags || [])
+    })
+  }, [id])
+
   return <>
     <div className='problem paper'>
       <article className='article'>
-        <ReactMarkdown
-          plugins={[math]}
-          renderers={renderers}
-        >{description}</ReactMarkdown>
+        {tags.length && <p style={{ marginTop: 0 }}>标签: {tags.map((tag, i) => (<span key={tag} className={i ? 'badge tag' : 'badge secondary'}>{tag}</span>))}</p>}
+        <ReactMarkdown plugins={plugins} renderers={renderers}>{description}</ReactMarkdown>
       </article>
     </div>
     <input className='modal-state' id='submit-modal' type='checkbox' />

@@ -55,7 +55,7 @@ const App: React.FC = () => {
     <Context.Provider value={token}>
       <StartedContext.Provider value={flag}>
         <nav className='border fixed split-nav'>
-          <div className='nav-brand'>
+          <div className='nav-brand' style={{ display: 'flex', alignItems: 'center' }}>
             <h3 style={{ display: 'inline' }}><Link to='/'>SUST Online Judge</Link></h3>
             <span>&nbsp;&nbsp;{config && config.title}</span>
           </div>
@@ -73,10 +73,10 @@ const App: React.FC = () => {
             : <>比赛已结束!</>}</div>}
           <div className='collapsible'>
             <div className='collapsible-body'>
-              <ul className='inline'>
+              <ul className='inline' style={{ marginTop: 0 }}>
                 <li><Link to='/ranklist'>排名</Link></li>
                 <li><Link to='/submits'>我的提交</Link></li>
-                <li><h4 style={{ margin: 0 }}><label className='badge secondary' htmlFor={name ? 'logout-modal' : 'login-modal'} style={{ color: '#FFF' }}>{name || '点此登录'}</label></h4></li>
+                <li><h4 style={{ margin: 0 }}><label className='badge secondary shadow shadow-small shadow-hover' htmlFor={name ? 'logout-modal' : 'login-modal'} style={{ color: '#FFF' }}>{name || '点此登录'}</label></h4></li>
               </ul>
             </div>
           </div>

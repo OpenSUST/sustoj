@@ -3,7 +3,7 @@ import Koa from 'koa'
 import jwt from 'jsonwebtoken'
 import Pool from './pool'
 import serve from 'koa-static'
-import { users, problems, config, secret } from './init'
+import { users, problems, config, secret, announcement } from './init'
 import { createServer } from 'http'
 import { promises as fsp } from 'fs'
 import data, { update, problemsData, userIdMap, lockedData, lock } from './data'
@@ -63,7 +63,7 @@ io.on('connection', (it: socketIO.Socket) => {
     })
     .on('getProblems', (token, reply) => {
       if (!reply) return
-      reply(problemsData)
+      reply(problemsData, announcement)
       it.join('home')
       const user = token ? jwt.verify(token, secret) as string | null : null
       it.emit('problemsStatus', isLocked && (!user || !users[user].star) ? lockedData.problemsStatus : data.problemsStatus)
@@ -195,7 +195,7 @@ io.on('connection', (it: socketIO.Socket) => {
         reply('找不到这道题!')
         return
       }
-      reply(null, problems[id].description)
+      reply(null, problems[id].description, problems[id].config.tags)
     })
     .on('disconnect', it => isWorker && workers.remove(it, a => !a.disconnected))
   io.emit('init', config)
