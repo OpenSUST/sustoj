@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import math from 'remark-math'
 import gfm from 'remark-gfm'
+import katex from 'rehype-katex'
 import c from 'react-syntax-highlighter/dist/esm/languages/prism/c'
 import cpp from 'react-syntax-highlighter/dist/esm/languages/prism/cpp'
 import java from 'react-syntax-highlighter/dist/esm/languages/prism/java'
@@ -14,7 +15,6 @@ import python from 'react-syntax-highlighter/dist/esm/languages/prism/python'
 import SyntaxHighlighter from 'react-syntax-highlighter/dist/esm/prism-light'
 import theme from 'react-syntax-highlighter/dist/esm/styles/prism/prism'
 import Editor from '@monaco-editor/react'
-import { InlineMath, BlockMath } from 'react-katex'
 import { useParams } from 'react-router-dom'
 
 import io from '../io'
@@ -26,13 +26,16 @@ import { alert, getStatusText, getProblemId, copy } from '../utils'
 ;(SyntaxHighlighter as any).registerLanguage('java', java)
 ;(SyntaxHighlighter as any).registerLanguage('python', python)
 
-const renderers: Record<string, (obj: { value: string, language: string, children: JSX.Element }) => JSX.Element> = {
-  code: ({ language, value }) => <div className='code-block'>
-    <SyntaxHighlighter style={theme} language={language}>{value}</SyntaxHighlighter>
-    <button className='paper-btn btn-small btn-primary-outline' onClick={() => copy(value.trimEnd() + '\n')}>复制</button>
-  </div>,
-  inlineMath: ({ value }) => <InlineMath math={value} />,
-  math: ({ value }) => <BlockMath math={value} />,
+const renderers: Record<string, (obj: any) => JSX.Element> = {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  code ({ node: _, inline, className, children, ...props }) {
+    const match = /language-(\w+)/.exec(className || '')
+    const code = String(children).replace(/\n$/, '') || ''
+    return <div className='code-block'>
+      <SyntaxHighlighter style={theme} language={match?.[1]} PreTag='div' {...props}>{code}</SyntaxHighlighter>
+      <button className='paper-btn btn-small btn-primary-outline' onClick={() => copy(code + '\n')}>复制</button>
+    </div>
+  },
   blockquote: ({ children }) => <blockquote className='alert alert-secondary'>{children}</blockquote>
 }
 
@@ -40,7 +43,7 @@ const plugins = [gfm, math]
 
 const ProblemPage: React.FC = () => {
   const token = useToken()
-  const ref = useRef<() => string>()
+  const ref = useRef<{ getValue(): string }>()
   const { id } = useParams<{ id: string }>()
   const [tags, setTags] = useState<string[]>([])
   const [description, setDescription] = useState('')
@@ -56,7 +59,7 @@ const ProblemPage: React.FC = () => {
     <div className='problem paper'>
       <article className='article'>
         {tags.length && <p style={{ marginTop: 0 }}>标签: {tags.map((tag, i) => (<span key={tag} className={i ? 'badge tag' : 'badge secondary'}>{tag}</span>))}</p>}
-        <ReactMarkdown plugins={plugins} renderers={renderers}>{description}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={plugins} rehypePlugins={[katex]} components={renderers}>{description}</ReactMarkdown>
       </article>
     </div>
     <input className='modal-state' id='submit-modal' type='checkbox' />
@@ -81,14 +84,14 @@ const ProblemPage: React.FC = () => {
             <option value='python'>Python</option>
           </select>
         </div>
-        <div className='form-group'><Editor theme='dark' height='50vh' width='80vw' language={lang} editorDidMount={it => (ref.current = it)} /></div>
+        <div className='form-group'><Editor height='50vh' width='80vw' className='code-editor' language={lang} onMount={it => (ref.current = it)} /></div>
         <label
           className='paper-btn'
           htmlFor='submit-modal'
           style={{ float: 'right' }}
           onClick={() => {
             if (!token || !window.started || !ref.current) return
-            const code = ref.current()
+            const code = ref.current.getValue()
             if (code.length > 1024 * 1024) {
               alert('代码过长!', false, 'danger')
               return

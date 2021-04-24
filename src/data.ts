@@ -7,7 +7,9 @@ const LOCKED_DATA_PATH = 'competition/lockedData.json'
 export const problemsData = problems.map(it => it.config)
 export const userIdMap: Record<string, [string] | string> = { }
 const data: Data = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'))
-export let lockedData: Data = fs.existsSync(LOCKED_DATA_PATH) ? JSON.parse(fs.readFileSync(LOCKED_DATA_PATH, 'utf8')) : null
+let lockedData: Data = fs.existsSync(LOCKED_DATA_PATH) ? JSON.parse(fs.readFileSync(LOCKED_DATA_PATH, 'utf8')) : null
+
+export const getLockedData = () => lockedData
 
 export const lock = () => {
   const d = JSON.stringify(data)

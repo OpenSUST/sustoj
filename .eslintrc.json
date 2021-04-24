@@ -31,6 +31,7 @@
     "node/no-callback-literal": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
-    "max-nested-callbacks": "off"
+    "max-nested-callbacks": "off",
+    "no-void": "off"
   }
 }

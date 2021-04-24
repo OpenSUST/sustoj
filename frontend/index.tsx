@@ -49,7 +49,7 @@ const App: React.FC = () => {
     io.on('init', f)
     const user = localStorage.getItem('username')
     if (user) login(user, localStorage.getItem('password'), false)
-    return () => io.off('init', f)
+    return () => void io.off('init', f)
   }, [])
   return (<HashRouter>
     <Context.Provider value={token}>

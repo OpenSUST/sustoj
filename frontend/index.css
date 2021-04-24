@@ -34,6 +34,10 @@ body {
   position: relative;
 }
 
+.code-block > div {
+  margin: 0 !important;
+}
+
 .problem .code-block button {
   top: 14px;
   position: absolute;
@@ -66,6 +70,14 @@ nav {
 
 .monaco-editor .margin {
   margin: 0;
+}
+
+.editor-widget .suggest-widget {
+  font-size: 16px;
+}
+
+.code-editor {
+  border: 1px solid #c1c0bd;
 }
 
 .countdown {

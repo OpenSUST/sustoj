@@ -20,7 +20,7 @@ const Home: React.FC = () => {
       setProblems(problems)
       setAnnouncement(announcement)
     })
-    return () => io.off('problemsStatus', setProblemsStatus).off('myProblemsStatus', setMyProblemsStatus).emit('leaveHome')
+    return () => void io.off('problemsStatus', setProblemsStatus).off('myProblemsStatus', setMyProblemsStatus).emit('leaveHome')
   }, [token])
   useStarted()
   return (<div className='home row flex-spaces flex-middle'>

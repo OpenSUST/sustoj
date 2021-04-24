@@ -44,10 +44,11 @@ const RankList: React.FC = () => {
       if (d && user) {
         if (!c[user]) c[user] = d
         else Object.assign(c[user], d)
+        if (!c[user].name) c[user].name = typeof b[user] === 'string' ? b[user] as string : b[user][0]
       }
       setUserData(c)
     })
-    return () => io.off('rankListUpdate', f).emit('leaveRankList')
+    return () => void io.off('rankListUpdate', f).emit('leaveRankList')
   }, [token])
   return (<div className='paper'>
     <h1 style={{ display: 'inline' }}>排名</h1>
@@ -73,7 +74,7 @@ const RankList: React.FC = () => {
           .filter(([, it]) => !it.star || showStared)
           .map(([key, value], i) => <tr key={key}>
             <td>{i + 1}</td>
-            <td popover-left={key} className={key === userId ? 'background-secondary' : undefined}>{value.name}</td>
+            <td popover-left={key} className={key === userId ? 'background-secondary' : undefined}>{value.name}{key === userId && ' (我)'}</td>
             <td>{value.solved}</td>
             <td>{value.penalty}</td>
             {Array.from({ length: problems.length }, (_, i) => {

@@ -13,7 +13,7 @@ const Submits: React.FC = () => {
   useEffect(() => {
     io.on('submits', setSubmits)
     if (token) io.emit('mySubmits', token, err => err && console.error(err))
-    return () => io.off('submits', setSubmits)
+    return () => void io.off('submits', setSubmits)
   }, [token])
   return (<div className='paper submits'>
     <h1 style={{ margin: 0 }}>我的提交</h1>

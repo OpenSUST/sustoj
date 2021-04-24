@@ -6,7 +6,7 @@ import serve from 'koa-static'
 import { users, problems, config, secret, announcement } from './init'
 import { createServer } from 'http'
 import { promises as fsp } from 'fs'
-import data, { update, problemsData, userIdMap, lockedData, lock } from './data'
+import data, { update, problemsData, userIdMap, getLockedData, lock } from './data'
 
 const IS_DEV = process.env.NODE_ENV !== 'production'
 
@@ -31,7 +31,7 @@ const check = () => {
   const now = Date.now()
   isLocked = now > config.end - 60 * 60 * 1000 && now < config.end
   started = now > config.start && now < config.end
-  if (!lockedData && isLocked) lock()
+  if (!getLockedData() && isLocked) lock()
 }
 check()
 setTimeout(check, 10000)
@@ -66,7 +66,7 @@ io.on('connection', (it: socketIO.Socket) => {
       reply(problemsData, announcement)
       it.join('home')
       const user = token ? jwt.verify(token, secret) as string | null : null
-      it.emit('problemsStatus', isLocked && (!user || !users[user].star) ? lockedData.problemsStatus : data.problemsStatus)
+      it.emit('problemsStatus', isLocked && (!user || !users[user].star) ? getLockedData().problemsStatus : data.problemsStatus)
       if (user && data.userData[user]) it.emit('myProblemsStatus', data.userData[user].problems)
     })
     .on('leaveHome', () => it.leave('home'))
@@ -74,7 +74,7 @@ io.on('connection', (it: socketIO.Socket) => {
       if (!reply) return
       it.join('rankList')
       const user = token ? jwt.verify(token, secret) as string | null : null
-      reply(problemsData.length, userIdMap, isLocked && (!user || !users[user].star) ? lockedData.userData : data.userData, user, user ? data.userData[user] : null)
+      reply(problemsData.length, userIdMap, isLocked && (!user || !users[user].star) ? getLockedData().userData : data.userData, user, user ? data.userData[user] : null)
     })
     .on('leaveRankList', () => it.leave('rankList'))
     .on('mySubmits', (token: string, reply) => {
@@ -89,7 +89,7 @@ io.on('connection', (it: socketIO.Socket) => {
         return
       }
       reply(null)
-      it.emit('submits', data.userData[user].submits)
+      it.emit('submits', data.userData[user]?.submits || [])
     })
     .on('getCode', (token, id: number, reply) => {
       if (!reply) return
@@ -197,7 +197,7 @@ io.on('connection', (it: socketIO.Socket) => {
       }
       reply(null, problems[id].description, problems[id].config.tags)
     })
-    .on('disconnect', it => isWorker && workers.remove(it, a => !a.disconnected))
+    .on('disconnect', () => isWorker && workers.remove(it, a => !a.disconnected))
   io.emit('init', config)
 })
 server.listen(23333)
