@@ -33,7 +33,7 @@ const regexps: Record<string, (code: string) => boolean> = {
     code = code.trim()
     return /(final +)?public +(final +)?class +Main/.test(code) && !code.startsWith('package ')
   },
-  python: () => true
+  python: code => !!code
 }
 
 const renderers: Record<string, (obj: any) => JSX.Element> = {
@@ -120,7 +120,7 @@ const ProblemPage: React.FC = () => {
             io.emit('submit', token, getProblemId(id), lang, code, (err: string | null, status: string, message = '') => {
               close()
               if (err) alert(err, true, 'danger')
-              else alert(getStatusText(status) + (status === 'COMPILE' ? ': ' + message : ''), false, status === 'ACCEPTED' ? 'success' : 'danger')
+              else alert(getStatusText(status) + ': ' + message, false, status === 'ACCEPTED' ? 'success' : 'danger')
             })
           }}
         >交一发!</label>

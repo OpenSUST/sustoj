@@ -79,7 +79,7 @@ const RankList: React.FC = () => {
             <td>{value.penalty}</td>
             {Array.from({ length: problems.length }, (_, i) => {
               const it = value.problems[i]
-              if (!it) return <td />
+              if (!it) return <td key={i} />
               const solved = it.solvedTime
               return <td key={i} className={solved ? 'background-success' : it.pending ? 'background-secondary' : it.try ? 'background-danger' : undefined}>{solved
                 ? <><TimeAgo datetime={solved} locale='zh_CN' /> (-{it.try})</> : `(-${it.try})`}</td>

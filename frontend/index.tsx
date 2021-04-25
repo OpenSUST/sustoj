@@ -65,8 +65,10 @@ const App: React.FC = () => {
                 date={config.now < config.start ? config.start : config.end}
                 onComplete={() => {
                   config.now = Date.now()
+                  const notEnded = config.now < config.end
                   setConfig({ ...config })
-                  window.started = config.start < config.now && config.now < config.end
+                  window.started = config.start < config.now && notEnded
+                  if (!notEnded) alert('比赛已结束!', false)
                   setFlag(config.now)
                 }}
               /></>
