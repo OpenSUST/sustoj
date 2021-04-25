@@ -45,20 +45,26 @@ const ProblemPage: React.FC = () => {
   const token = useToken()
   const ref = useRef<{ getValue(): string }>()
   const { id } = useParams<{ id: string }>()
-  const [tags, setTags] = useState<string[]>([])
+  const [config, setConfig] = useState<{
+    title: string
+    tags?: string[]
+    memory: number
+    time: number
+  }>(null)
   const [description, setDescription] = useState('')
   const [lang, setLang] = useState(() => localStorage.getItem('language') || 'c')
   useEffect(() => {
-    io.emit('getProblem', getProblemId(id), (err, data, tags) => {
+    io.emit('getProblem', getProblemId(id), (err, data, config) => {
       setDescription(err || data)
-      setTags(tags || [])
+      setConfig(config)
     })
   }, [id])
 
   return <>
     <div className='problem paper'>
       <article className='article'>
-        {tags.length && <p style={{ marginTop: 0 }}>标签: {tags.map((tag, i) => (<span key={tag} className={i ? 'badge tag' : 'badge secondary'}>{tag}</span>))}</p>}
+        {config?.tags.length && <p style={{ marginTop: 0 }}>标签: {config.tags.map((tag, i) => (<span key={tag} className={i ? 'badge tag' : 'badge secondary'}>{tag}</span>))}&nbsp;</p>}
+        {config && <>(时间限制: {config.memory} MB, 时间限制: {config.time} 毫秒)</>}
         <ReactMarkdown remarkPlugins={plugins} rehypePlugins={[katex]} components={renderers}>{description}</ReactMarkdown>
       </article>
     </div>

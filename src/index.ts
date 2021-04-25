@@ -195,7 +195,7 @@ io.on('connection', (it: socketIO.Socket) => {
         reply('找不到这道题!')
         return
       }
-      reply(null, problems[id].description, problems[id].config.tags)
+      reply(null, problems[id].description, problems[id].config)
     })
     .on('disconnect', () => isWorker && workers.remove(it, a => !a.disconnected))
   io.emit('init', config)

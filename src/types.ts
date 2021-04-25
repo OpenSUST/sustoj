@@ -3,8 +3,10 @@ export interface Problem {
     title: string
     tags?: string[]
   }
-  output: string
-  input: string
+  outputs: string[]
+  inputs: string[]
+  time?: number
+  memory?: number
   description: string
 }
 

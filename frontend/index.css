@@ -72,8 +72,8 @@ nav {
   margin: 0;
 }
 
-.editor-widget .suggest-widget {
-  font-size: 16px;
+.monaco-editor .editor-widget.suggest-widget {
+  font-size: 15px !important;
 }
 
 .code-editor {
