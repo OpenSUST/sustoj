@@ -26,6 +26,16 @@ import { alert, getStatusText, getProblemId, copy } from '../utils'
 ;(SyntaxHighlighter as any).registerLanguage('java', java)
 ;(SyntaxHighlighter as any).registerLanguage('python', python)
 
+const regexps: Record<string, (code: string) => boolean> = {
+  c: code => /int +main *\(.*?\)/.test(code),
+  cpp: code => /int +main *\(.*?\)/.test(code),
+  java (code) {
+    code = code.trim()
+    return /(final +)?public +(final +)?class +Main/.test(code) && !code.startsWith('package ')
+  },
+  python: () => true
+}
+
 const renderers: Record<string, (obj: any) => JSX.Element> = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   code ({ node: _, inline, className, children, ...props }) {
@@ -98,7 +108,11 @@ const ProblemPage: React.FC = () => {
           onClick={() => {
             if (!token || !window.started || !ref.current) return
             const code = ref.current.getValue()
-            if (code.length > 1024 * 1024) {
+            if (!regexps[lang](code)) {
+              alert('请确认所选择的语言是正确的!', false, 'danger')
+              return
+            }
+            if (code.length > 1024 * 1024) { // 1MB
               alert('代码过长!', false, 'danger')
               return
             }

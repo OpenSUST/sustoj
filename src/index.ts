@@ -154,7 +154,7 @@ io.on('connection', (it: socketIO.Socket) => {
           workers.acquire()
             .then(it => it.emit('run', id, lang, code, (status: string, message: string) => {
               if (!it.disconnected) workers.add(it)
-              problem.try++
+              if (!problem.solvedTime) problem.try++
               // eslint-disable-next-line prefer-reflect
               delete problem.pending
               submit.status = status
