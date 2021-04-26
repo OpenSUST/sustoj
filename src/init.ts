@@ -10,7 +10,7 @@ if (!fs.existsSync('competition/problems/0')) fs.mkdirSync('competition/problems
 if (!fs.existsSync('competition/problems/0/data')) fs.mkdirSync('competition/problems/0/data')
 
 ;([
-  ['competition/data.json', { problemsStatus: { }, userData: { }, submitId: 0 } as Data],
+  ['competition/data.json', { problemsStatus: { }, userData: { }, submitId: 0, problemsHash: '' } as Data],
   ['competition/config.json', {
     title: '测试赛',
     timeLimit: 1000,

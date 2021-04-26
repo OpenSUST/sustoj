@@ -18,6 +18,7 @@ export interface UserData {
 }
 
 export interface Data {
+  problemsHash: string
   submitId: number
   problemsStatus: Record<number, [number, number]>
   userData: Record<string, UserData>

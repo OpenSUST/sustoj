@@ -6,7 +6,7 @@ import serve from 'koa-static'
 import { users, problems, config, secret, announcement } from './init'
 import { createServer } from 'http'
 import { promises as fsp } from 'fs'
-import data, { update, problemsData, userIdMap, getLockedData, lock } from './data'
+import data, { update, problemsData, userIdMap, getLockedData, lock, problemsCompressedData, problemsHash } from './data'
 
 const IS_DEV = process.env.NODE_ENV !== 'production'
 
@@ -18,6 +18,7 @@ app.use(serve('competition/static'))
 const server = createServer(app.callback())
 const io = new socketIO.Server(server, {
   serveClient: false,
+  pingTimeout: 40000,
   // eslint-disable-next-line multiline-ternary
   cors: IS_DEV ? {
     origin: 'http://127.0.0.1:1234',
@@ -42,15 +43,18 @@ io.on('connection', (it: socketIO.Socket) => {
   let isWorker = false
   it
     .on('worker-login', (token, count = 1, reply) => {
-      if (!reply) return
+      if (!reply || !problemsCompressedData) {
+        it.disconnect(true)
+        return
+      }
       if (token !== secret) {
         reply('The secret is not correct!')
         it.disconnect(true)
         return
       }
-      console.log('Worker connected:', it.client.request.socket.remoteAddress)
       isWorker = true
-      reply(null, problems)
+      reply(null, problemsCompressedData, problemsHash)
+      console.log('Worker connected:', it.client.request.socket.remoteAddress)
       while (count-- > 0) workers.add(it)
     })
     .on('login', (username: string, password: string, reply) => {
