@@ -37,7 +37,7 @@ const check = () => {
   if (!getLockedData() && isLocked) lock()
 }
 check()
-setTimeout(check, 10000)
+setInterval(check, 10000)
 
 io.on('connection', (it: socketIO.Socket) => {
   let isWorker = false
@@ -212,4 +212,4 @@ io.on('connection', (it: socketIO.Socket) => {
     .on('disconnect', () => isWorker && workers.remove(it, a => !a.disconnected))
   io.emit('init', config)
 })
-server.listen(23333)
+server.listen(config.port || 13513)

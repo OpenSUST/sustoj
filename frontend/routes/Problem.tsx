@@ -41,10 +41,12 @@ const renderers: Record<string, (obj: any) => JSX.Element> = {
   code ({ node: _, inline, className, children, ...props }) {
     const match = /language-(\w+)/.exec(className || '')
     const code = String(children).replace(/\n$/, '') || ''
-    return <div className='code-block'>
-      <SyntaxHighlighter style={theme} language={match?.[1]} PreTag='div' {...props}>{code}</SyntaxHighlighter>
-      <button className='paper-btn btn-small btn-primary-outline' onClick={() => copy(code + '\n')}>复制</button>
-    </div>
+    return inline
+      ? <code className={(className || '') + ' inline-code'} {...props}>{children}</code>
+      : <div className='code-block'>
+        <SyntaxHighlighter style={theme} language={match?.[1]} PreTag='div' {...props}>{code}</SyntaxHighlighter>
+        <button className='paper-btn btn-small btn-primary-outline' onClick={() => copy(code + '\n')}>复制</button>
+      </div>
   },
   blockquote: ({ children }) => <blockquote className='alert alert-secondary'>{children}</blockquote>
 }

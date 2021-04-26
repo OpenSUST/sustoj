@@ -110,3 +110,9 @@ nav {
 blockquote, blockquote p {
   margin: 0;
 }
+
+.inline-code {
+  color: inherit;
+  margin-left: 4px;
+  font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+}

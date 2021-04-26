@@ -12,6 +12,7 @@ if (!fs.existsSync('competition/problems/0/data')) fs.mkdirSync('competition/pro
 ;([
   ['competition/data.json', { problemsStatus: { }, userData: { }, submitId: 0, problemsHash: '' } as Data],
   ['competition/config.json', {
+    port: 13513,
     title: '测试赛',
     timeLimit: 1000,
     memoryLimit: 256,
@@ -50,6 +51,7 @@ Hello World!
   .forEach(([file, defaults]) => !fs.existsSync(file) && fs.writeFileSync(file, typeof defaults === 'string' ? defaults : JSON.stringify(defaults)))
 
 export const config: {
+  port: number
   title: string
   start: number
   end: number
