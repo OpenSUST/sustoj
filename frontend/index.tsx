@@ -18,6 +18,10 @@ import { alert } from './utils'
 
 window.started = false
 
+try {
+  document.title = require('../name.js')
+} catch { }
+
 const App: React.FC = () => {
   const [flag, setFlag] = useState(0)
   const [name, setName] = useState('')
@@ -56,7 +60,7 @@ const App: React.FC = () => {
       <StartedContext.Provider value={flag}>
         <nav className='border fixed split-nav'>
           <div className='nav-brand' style={{ display: 'flex', alignItems: 'center' }}>
-            <h3 style={{ display: 'inline' }}><Link to='/'>SUST Online Judge</Link></h3>
+            <h3 style={{ display: 'inline' }}><Link to='/'>{document.title}</Link></h3>
             <span>&nbsp;&nbsp;{config && config.title}</span>
           </div>
           {config && <div className='countdown'>{config.now < config.end

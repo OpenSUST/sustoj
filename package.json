@@ -2,7 +2,7 @@
   "name": "sustoj",
   "version": "0.0.0",
   "description": "The worker process of SUSTOJ",
-  "main": "index.js",
+  "main": "build/index.js",
   "scripts": {
     "start": "node build/index.js",
     "tsc": "tsc",
@@ -10,6 +10,9 @@
     "dev": "parcel index.html",
     "dev2": "ts-node-dev src/index.ts",
     "test": "eslint ."
+  },
+  "engines": {
+    "browsers": "Chrome 69"
   },
   "targets": {
     "main": false
