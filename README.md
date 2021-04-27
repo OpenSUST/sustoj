@@ -1,4 +1,6 @@
-# Sust Online Judge
+# SUST Online Judge
+
+See also: [SUSTOJ-worker](https://github.com/OpenSUST/sustoj-worker)
 
 ## Usage
 

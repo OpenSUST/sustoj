@@ -68,8 +68,8 @@ export const problems: Problem[] = fs.readdirSync('competition/problems').sort((
   const inputs = fs.readdirSync(dataPath).filter(it => it.includes('in'))
   return {
     config: Object.assign({ time: config.timeLimit, memory: config.memoryLimit }, JSON.parse(fs.readFileSync(path + 'index.json', 'utf8'))),
-    inputs: inputs.map(it => fs.readFileSync(dataPath + it, 'utf8')),
-    outputs: inputs.map(it => fs.readFileSync(dataPath + it.replace('in', 'out'), 'utf8').trimEnd()),
+    inputs: inputs.map(it => fs.readFileSync(dataPath + it, 'utf8').replace(/\r/g, '')),
+    outputs: inputs.map(it => fs.readFileSync(dataPath + it.replace('in', 'out'), 'utf8').replace(/\r/g, '').trimEnd()),
     description: fs.readFileSync(path + 'index.md', 'utf8')
   }
 })
