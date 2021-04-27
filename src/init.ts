@@ -7,9 +7,13 @@ if (!fs.existsSync('competition/static')) fs.mkdirSync('competition/static')
 if (!fs.existsSync('competition/submits')) fs.mkdirSync('competition/submits')
 if (!fs.existsSync('competition/problems')) fs.mkdirSync('competition/problems')
 if (!fs.existsSync('competition/problems/0')) fs.mkdirSync('competition/problems/0')
-if (!fs.existsSync('competition/problems/0/data')) fs.mkdirSync('competition/problems/0/data')
+if (!fs.existsSync('competition/problems/0/data')) {
+  fs.mkdirSync('competition/problems/0/data')
+  fs.writeFileSync('competition/problems/0/data/input.txt', '3\n')
+  fs.writeFileSync('competition/problems/0/data/output.txt', 'Hello World!\nHello World!\nHello World!\n')
+}
 
-;([
+([
   ['competition/data.json', { problemsStatus: { }, userData: { }, submitId: 0, problemsHash: '' } as Data],
   ['competition/config.json', {
     port: 13513,
@@ -22,6 +26,7 @@ if (!fs.existsSync('competition/problems/0/data')) fs.mkdirSync('competition/pro
   }],
   ['competition/users.json', { admin: { name: '管理员', password: Math.random().toString(36).slice(2), star: true } }],
   ['competition/announcement.md', ''],
+  ['competition/problems/0/index.json', { title: 'Test', tags: ['Easy'] }],
   ['competition/problems/0/index.md', `# Test
 
 ## Description
@@ -43,10 +48,7 @@ Hello World!
 Hello World!
 Hello World!
 \`\`\`
-`],
-  ['competition/problems/0/data/input.txt', '3\n'],
-  ['competition/problems/0/data/output.txt', 'Hello World!\nHello World!\nHello World!\n'],
-  ['competition/problems/0/index.json', { title: 'Test', tags: ['Easy'] }]
+`]
 ] as Array<[string, unknown]>)
   .forEach(([file, defaults]) => !fs.existsSync(file) && fs.writeFileSync(file, typeof defaults === 'string' ? defaults : JSON.stringify(defaults)))
 
