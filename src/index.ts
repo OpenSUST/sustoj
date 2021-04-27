@@ -53,9 +53,16 @@ io.on('connection', (it: socketIO.Socket) => {
         return
       }
       isWorker = true
-      reply(null, problemsCompressedData, problemsHash)
+      reply(null, problemsHash)
       console.log('Worker connected:', it.client.request.socket.remoteAddress)
       while (count-- > 0) workers.add(it)
+    })
+    .on('worker-getProblems', reply => {
+      if (!reply || !isWorker || !problemsCompressedData) {
+        it.disconnect(true)
+        return
+      }
+      reply(problemsCompressedData)
     })
     .on('login', (username: string, password: string, reply) => {
       if (!reply) return
