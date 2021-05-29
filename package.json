@@ -6,10 +6,11 @@
   "scripts": {
     "start": "node build/index.js",
     "tsc": "tsc",
-    "build": "del-cli dist && parcel build index.html && tsc",
+    "build": "npm run clean && parcel build index.html && tsc",
     "dev": "parcel index.html",
     "dev2": "ts-node-dev src/index.ts",
     "test": "eslint .",
+    "clean": "del-cli dist/* !*.ini",
     "report": "parcel build index.html --reporter @parcel/reporter-bundle-analyzer"
   },
   "engines": {
