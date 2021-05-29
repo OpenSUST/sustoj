@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 import Pool from './pool'
 import serve from 'koa-static'
 import { users, problems, config, secret, announcement } from './init'
-import { createServer } from 'http'
+import { createServer, Server } from 'http'
 import { promises as fsp } from 'fs'
 import { createHash } from 'crypto'
 import data, { update, problemsData, userIdMap, getLockedData, lock, problemsCompressedData, problemsHash } from './data'
@@ -13,10 +13,14 @@ const IS_DEV = process.env.NODE_ENV !== 'production'
 
 const workers = new Pool<socketIO.Socket>()
 
-const app = new Koa()
-app.use(serve('dist'))
-app.use(serve('competition/static'))
-const server = createServer(app.callback())
+let server: Server | number = config.port || 13513
+if (config.hostStatic) {
+  const app = new Koa()
+  app.use(serve('dist'))
+  app.use(serve('competition/static'))
+  server = createServer(app.callback()).listen(server)
+}
+
 const io = new socketIO.Server(server, {
   serveClient: false,
   pingTimeout: 40000,
@@ -221,4 +225,3 @@ io.on('connection', (it: socketIO.Socket) => {
     .on('disconnect', () => isWorker && workers.remove(it, a => !a.disconnected))
   io.emit('init', config)
 })
-server.listen(config.port || 13513)

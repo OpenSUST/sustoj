@@ -18,6 +18,7 @@ if (!fs.existsSync('competition/problems/0/data')) {
   ['competition/config.json', {
     port: 13513,
     title: '测试赛',
+    hostStatic: true,
     timeLimit: 1000,
     memoryLimit: 256,
     start: Date.now(),
@@ -59,6 +60,7 @@ export const config: {
   end: number
   timeLimit: number
   memoryLimit: number
+  hostStatic: boolean
 } = JSON.parse(fs.readFileSync('competition/config.json', 'utf8'))
 export const secret: string = (config as any).secret
 // eslint-disable-next-line prefer-reflect
@@ -75,5 +77,10 @@ export const problems: Problem[] = fs.readdirSync('competition/problems').sort((
     description: fs.readFileSync(path + 'index.md', 'utf8')
   }
 })
+
+if (!config.hostStatic) {
+  if (fs.existsSync('dist')) fs.mkdirSync('dist')
+  fs.readdirSync('competition/static').forEach(it => fs.copyFileSync('competition/static/' + it, 'dist/' + it))
+}
 
 export const announcement = fs.existsSync('competition/announcement.md') ? fs.readFileSync('competition/announcement.md', 'utf8') : ''
