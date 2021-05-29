@@ -6,6 +6,7 @@ import serve from 'koa-static'
 import { users, problems, config, secret, announcement } from './init'
 import { createServer } from 'http'
 import { promises as fsp } from 'fs'
+import { createHash } from 'crypto'
 import data, { update, problemsData, userIdMap, getLockedData, lock, problemsCompressedData, problemsHash } from './data'
 
 const IS_DEV = process.env.NODE_ENV !== 'production'
@@ -184,6 +185,7 @@ io.on('connection', (it: socketIO.Socket) => {
                   problem.solvedTime = time
                   userData.penalty += time - config.start
                   userData.penalty += 20 * 60 * 1000 * (problem.try - 1)
+                  problem.hash = createHash('md5').update(code.replace(/\s/g, '')).digest('hex')
                 }
               }
               update()

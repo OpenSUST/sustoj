@@ -13,7 +13,7 @@ export interface Problem {
 export interface UserData {
   penalty: number
   solved: number
-  problems: Record<number, { solvedTime?: number, try: number, pending?: true }>
+  problems: Record<number, { solvedTime?: number, try: number, pending?: true, hash?: string }>
   submits: Array<{ time: number, id: number, status: string, problem: number }>
 }
 

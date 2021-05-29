@@ -13,9 +13,11 @@ export interface UserData {
   star?: true
   penalty: number
   solved: number
-  problems: Record<number, { solvedTime?: number, try: number, pending?: true }>
+  problems: Record<number, { solvedTime?: number, try: number, pending?: true, hash?: string } | undefined>
   submits: Array<{ time: number, id: number, status: string }>
 }
+
+const sort = ([, a], [, b]) => a.solved > b.solved ? -1 : a.solved === b.solved ? a.penalty - b.penalty : 1
 
 let flag = 0
 const RankList: React.FC = () => {
@@ -25,6 +27,22 @@ const RankList: React.FC = () => {
   const [userData, setUserData] = useState<Record<string, UserData>>({})
   const token = useToken()
   const userId = localStorage.getItem('username')
+  const len = problems.length
+  const downloadData = () => {
+    if (!userData) return
+    let data = 'data:text/csv;charset=utf-8,\uFEFF排名,名字,ID,题数,罚时'
+    for (let i = 0; i < len; i++) data += ',' + getProblemText(i)
+    Object.entries(userData).sort(sort).forEach(([key, it], i) => {
+      data += `\n${i + 1},${it.name},${key},${it.solved},${it.penalty}`
+      for (let i = 0; i < len; i++) data += ',' + (it.problems[i]?.hash || '')
+    })
+    const link = document.createElement('a')
+    link.setAttribute('href', encodeURI(data))
+    link.setAttribute('download', '数据.csv')
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  }
   useEffect(() => {
     const f = (id: string, data: UserData) => {
       if (!userData[id]) userData[id] = data
@@ -53,6 +71,7 @@ const RankList: React.FC = () => {
   return (<div className='paper'>
     <h1 style={{ display: 'inline' }}>排名</h1>
     <span>(比赛结束一小时前封榜)</span>
+    <button className='data-download' onClick={downloadData}>下载数据</button>
     <fieldset className='form-group' style={{ margin: '12px 0 0' }}>
       <label htmlFor='show-stared' className='paper-check'>
         <input type='checkbox' id='show-stared' checked={showStared} onChange={() => setShowStared(!showStared)} /> <span>显示不参与排名的小朋友们</span>
@@ -70,14 +89,14 @@ const RankList: React.FC = () => {
       </thead>
       <tbody>
         {userData && Object.entries(userData)
-          .sort(([, a], [, b]) => a.solved > b.solved ? -1 : a.solved === b.solved ? a.penalty - b.penalty : 1)
+          .sort(sort)
           .filter(([, it]) => !it.star || showStared)
           .map(([key, value], i) => <tr key={key}>
             <td>{i + 1}</td>
             <td popover-left={key} className={key === userId ? 'background-secondary' : undefined}>{value.name}{key === userId && ' (我)'}</td>
             <td>{value.solved}</td>
             <td>{value.penalty}</td>
-            {Array.from({ length: problems.length }, (_, i) => {
+            {Array.from({ length: len }, (_, i) => {
               const it = value.problems[i]
               if (!it) return <td key={i} />
               const solved = it.solvedTime
