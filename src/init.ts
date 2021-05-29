@@ -79,7 +79,7 @@ export const problems: Problem[] = fs.readdirSync('competition/problems').sort((
 })
 
 if (!config.hostStatic) {
-  if (fs.existsSync('dist')) fs.mkdirSync('dist')
+  if (!fs.existsSync('dist')) fs.mkdirSync('dist')
   fs.readdirSync('competition/static').forEach(it => fs.copyFileSync('competition/static/' + it, 'dist/' + it))
 }
 
